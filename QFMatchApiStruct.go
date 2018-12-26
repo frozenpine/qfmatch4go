@@ -282,3 +282,11 @@ type GoCQFMatchDepthMarketDataField struct {
 	FundingRate        float64
 	FairPrice          float64
 }
+
+// GoCQFMatchQryInstrumentField 合约查询
+type GoCQFMatchQryInstrumentField struct {
+	SettlementGroupID string
+	ProductGroupID    string
+	ProductID         string
+	InstrumentID      string
+}

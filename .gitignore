@@ -1,2 +1,3 @@
-demos/*.exe
-demos/flow
+demos/**/*.exe
+demos/**/flow
+**/debug

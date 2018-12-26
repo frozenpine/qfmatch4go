@@ -5,7 +5,7 @@
 #include <time.h>
 #include <sys/stat.h>
 
-#include "../cQFMatchSuperApi.h"
+#include "../../cQFMatchSuperApi.h"
 
 #ifdef WIN32
 #define MKDIR(path) mkdir(path)
@@ -102,6 +102,7 @@ void OnRspQryInstrument(QFMatchSuperApiInstance client, struct CQFMatchRspInstru
 
         struct CQFMatchQryInstrumentField qry;
         memset(&qry, 0, sizeof(struct CQFMatchQryInstrumentField));
+        strncpy(&qry.SettlementGroupID, "SG01", sizeof(TQFMatchSettlementGroupIDType)-1);
 
         ReqQryInstrument(client, &qry, nRequestID + 1);
     }

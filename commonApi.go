@@ -48,10 +48,6 @@ func getInstanceCallback(instance C.QFMatchSuperApiInstance) interface{} {
 func convertRspInfo(pRspInfo *C.struct_CQFMatchRspInfoField) *GoCQFMatchRspInfoField {
 	rsp := GoCQFMatchRspInfoField{}
 
-	if pRspInfo == nil {
-		return &rsp
-	}
-
 	rsp.ErrorID = int(pRspInfo.ErrorID)
 	msg, _ := iconv.ConvertString(C.GoString(&pRspInfo.ErrorMsg[0]), "gbk", "utf-8")
 	rsp.ErrorMsg = msg
@@ -157,6 +153,10 @@ func goOnPackageEnd(instance C.QFMatchSuperApiInstance, nTopicID, nSequenceNO C.
 
 //export goOnRspError
 func goOnRspError(instance C.QFMatchSuperApiInstance, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {
+	if pRspInfo == nil {
+		return
+	}
+
 	callback := getInstanceCallback(instance)
 
 	if callback != nil {
@@ -166,6 +166,10 @@ func goOnRspError(instance C.QFMatchSuperApiInstance, pRspInfo *C.struct_CQFMatc
 
 //export goOnRspUserLogin
 func goOnRspUserLogin(instance C.QFMatchSuperApiInstance, pRspUserLogin *C.struct_CQFMatchRspUserLoginField, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {
+	if pRspUserLogin == nil || pRspInfo == nil {
+		return
+	}
+
 	callback := getInstanceCallback(instance)
 
 	if callback != nil {
@@ -175,6 +179,10 @@ func goOnRspUserLogin(instance C.QFMatchSuperApiInstance, pRspUserLogin *C.struc
 
 //export goOnRspUserLogout
 func goOnRspUserLogout(instance C.QFMatchSuperApiInstance, pRspUserLogout *C.struct_CQFMatchRspUserLogoutField, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {
+	if pRspUserLogout == nil || pRspInfo == nil {
+		return
+	}
+
 	callback := getInstanceCallback(instance)
 
 	if callback != nil {
@@ -184,6 +192,10 @@ func goOnRspUserLogout(instance C.QFMatchSuperApiInstance, pRspUserLogout *C.str
 
 //export goOnRspQryBulletin
 func goOnRspQryBulletin(instance C.QFMatchSuperApiInstance, pBulletin *C.struct_CQFMatchBulletinField, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {
+	if pBulletin == nil || pRspInfo == nil {
+		return
+	}
+
 	callback := getInstanceCallback(instance)
 
 	if callback != nil {
@@ -193,6 +205,10 @@ func goOnRspQryBulletin(instance C.QFMatchSuperApiInstance, pBulletin *C.struct_
 
 //export goOnRtnBulletin
 func goOnRtnBulletin(instance C.QFMatchSuperApiInstance, pBulletin *C.struct_CQFMatchBulletinField) {
+	if pBulletin == nil {
+		return
+	}
+
 	callback := getInstanceCallback(instance)
 
 	if callback != nil {
@@ -232,6 +248,10 @@ func (api *commonAPI) InitAPI(flowPath, superAPIType string) {
 }
 
 func (api *commonAPI) registerCommonCallbacks(ptrVtCallbacks *C.Callbacks) {
+	if apiMap == nil {
+		apiMap = make(map[int]interface{})
+	}
+
 	ptrVtCallbacks.ptrOnFrontConnected = C.FuncOnFrontConnected(C.cgoOnFrontConnected)
 	ptrVtCallbacks.ptrOnFrontDisconnected = C.FuncOnFrontDisconnected(C.cgoOnFrontDisconnected)
 	ptrVtCallbacks.ptrOnHeartBeatWarning = C.FuncOnHeartBeatWarning(C.cgoOnHeartBeatWarning)
@@ -267,21 +287,20 @@ func (api *commonAPI) GetTradingDay() string {
 // RegisterFront 注册前置地址
 func (api *commonAPI) RegisterFront(frontAddr string) {
 	C.RegisterFront(C.QFMatchSuperApiInstance(api.apiInstance), C.CString(frontAddr))
+
+	api.FrontAddr = frontAddr
 }
 
 // RegisterNameServer 注册名字服务器网络地址
 func (api *commonAPI) RegisterNameServer(nsAddr string) {
 	C.RegisterNameServer(C.QFMatchSuperApiInstance(api.apiInstance), C.CString(nsAddr))
+
+	api.FensAddr = nsAddr
 }
 
 // RegisterCertificateFile 加载证书
 func (api *commonAPI) RegisterCertificateFile(certFileName, keyFileName, caFileName, keyFilePassword string) int {
 	return int(C.RegisterCertificateFile(C.QFMatchSuperApiInstance(api.apiInstance), C.CString(certFileName), C.CString(keyFileName), C.CString(caFileName), C.CString(keyFilePassword)))
-}
-
-// SubscribeMarketDataTopic 订阅市场行情
-func (api *commonAPI) SubscribeMarketDataTopic(topicID int, resumeType ResumeType) {
-	C.SubscribeMarketDataTopic(C.QFMatchSuperApiInstance(api.apiInstance), C.int(topicID), C.enum_QFMATCH_TE_RESUME_TYPE(resumeType))
 }
 
 // SubscribePrivateTopic 订阅私有流
@@ -356,8 +375,8 @@ func (api *commonAPI) OnFrontConnected() {
 	log.Printf("Front[%s] connected.\n", api.FrontAddr)
 }
 
-// OnFrontDisConnected 前置断连消息
-func (api *commonAPI) OnFrontDisConnected(reason int) {
+// OnFrontDisconnected 前置断连消息
+func (api *commonAPI) OnFrontDisconnected(reason int) {
 	api.Connected = false
 
 	log.Printf("Front[%s] disconnected\n", api.FrontAddr)
@@ -395,3 +414,10 @@ func (api *commonAPI) OnRspUserLogout(rspUserLogout *GoCQFMatchRspUserLogoutFiel
 		log.Printf("User[%s] logout success\n", rspUserLogout.UserID)
 	}
 }
+
+// OnRspQryBulletin 通告消息查询应答
+func (api *commonAPI) OnRspQryBulletin(bulletin *GoCQFMatchBulletinField, err *GoCQFMatchRspInfoField, requestID int, isLast bool) {
+}
+
+// OnRtnBulletin 通告消息推送
+func (api *commonAPI) OnRtnBulletin(bulletin *GoCQFMatchBulletinField) {}

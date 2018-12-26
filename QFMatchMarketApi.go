@@ -4,6 +4,8 @@ package qfmatch4go
 #cgo CFLAGS: -I${SRCDIR} -fPIC
 #cgo LDFLAGS: -L${SRCDIR} -lcQFMatchSuperApi
 
+#include <string.h>
+
 #include "cgoMarketApi.h"
 */
 import "C"
@@ -12,6 +14,8 @@ import (
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/djimenez/iconv-go"
 )
 
 type marketAPICallbacks interface {
@@ -91,7 +95,10 @@ func convertRspInstrumentField(pRspInstrument *C.struct_CQFMatchRspInstrumentFie
 	data.VolumeMultiple = int(pRspInstrument.VolumeMultiple)
 	data.UnderlyingMultiple = float64(pRspInstrument.UnderlyingMultiple)
 	data.InstrumentID = C.GoString(&pRspInstrument.InstrumentID[0])
-	data.InstrumentName = C.GoString(&pRspInstrument.InstrumentName[0])
+
+	insName, _ := iconv.ConvertString(C.GoString(&pRspInstrument.InstrumentName[0]), "gbk", "utf-8")
+	data.InstrumentName = insName
+
 	data.DeliveryYear = int(pRspInstrument.DeliveryYear)
 	data.DeliveryMonth = int(pRspInstrument.DeliveryMonth)
 
@@ -215,6 +222,10 @@ func convertDepthMarketDataField(pDepthMarketData *C.struct_CQFMatchDepthMarketD
 
 //export goOnRspSubscribeTopic
 func goOnRspSubscribeTopic(instance C.QFMatchSuperApiInstance, pDissemination *C.struct_CQFMatchDisseminationField, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {
+	if pDissemination == nil || pRspInfo == nil {
+		return
+	}
+
 	callback := getInstanceCallback(instance)
 
 	if callback != nil {
@@ -224,6 +235,10 @@ func goOnRspSubscribeTopic(instance C.QFMatchSuperApiInstance, pDissemination *C
 
 //export goOnRspQryMarketData
 func goOnRspQryMarketData(instance C.QFMatchSuperApiInstance, pMarketData *C.struct_CQFMatchMarketDataField, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {
+	if pMarketData == nil || pRspInfo == nil {
+		return
+	}
+
 	callback := getInstanceCallback(instance)
 
 	if callback != nil {
@@ -233,6 +248,10 @@ func goOnRspQryMarketData(instance C.QFMatchSuperApiInstance, pMarketData *C.str
 
 //export goOnRspQryInstrument
 func goOnRspQryInstrument(instance C.QFMatchSuperApiInstance, pRspInstrument *C.struct_CQFMatchRspInstrumentField, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {
+	if pRspInstrument == nil || pRspInfo == nil {
+		return
+	}
+
 	callback := getInstanceCallback(instance)
 
 	if callback != nil {
@@ -242,6 +261,10 @@ func goOnRspQryInstrument(instance C.QFMatchSuperApiInstance, pRspInstrument *C.
 
 //export goOnRspQryInstrumentStatus
 func goOnRspQryInstrumentStatus(instance C.QFMatchSuperApiInstance, pInstrumentStatus *C.struct_CQFMatchInstrumentStatusField, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {
+	if pInstrumentStatus == nil || pRspInfo == nil {
+		return
+	}
+
 	callback := getInstanceCallback(instance)
 
 	if callback != nil {
@@ -260,6 +283,10 @@ func goOnRspQryInstrumentStatus(instance C.QFMatchSuperApiInstance, pInstrumentS
 
 //export goOnRtnInstrumentStatus
 func goOnRtnInstrumentStatus(instance C.QFMatchSuperApiInstance, pInstrumentStatus *C.struct_CQFMatchInstrumentStatusField) {
+	if pInstrumentStatus == nil {
+		return
+	}
+
 	callback := getInstanceCallback(instance)
 
 	if callback != nil {
@@ -269,6 +296,10 @@ func goOnRtnInstrumentStatus(instance C.QFMatchSuperApiInstance, pInstrumentStat
 
 //export goOnRtnMarketData
 func goOnRtnMarketData(instance C.QFMatchSuperApiInstance, pMarketData *C.struct_CQFMatchMarketDataField) {
+	if pMarketData == nil {
+		return
+	}
+
 	callback := getInstanceCallback(instance)
 
 	if callback != nil {
@@ -278,6 +309,10 @@ func goOnRtnMarketData(instance C.QFMatchSuperApiInstance, pMarketData *C.struct
 
 //export goOnRtnDepthMarketData
 func goOnRtnDepthMarketData(instance C.QFMatchSuperApiInstance, pDepthMarketData *C.struct_CQFMatchDepthMarketDataField) {
+	if pDepthMarketData == nil {
+		return
+	}
+
 	callback := getInstanceCallback(instance)
 
 	if callback != nil {
@@ -322,6 +357,25 @@ func (api *QFMatchMarketAPI) RegisterCallbacks(cb QFMatchMarketAPICallbacks) {
 	C.RegisterCallbacks(C.QFMatchSuperApiInstance(api.apiInstance), &vtCallbacks)
 
 	apiMap[api.apiInstance] = cb
+}
+
+// SubscribeMarketDataTopic 订阅市场行情
+func (api *QFMatchMarketAPI) SubscribeMarketDataTopic(topicID int, resumeType ResumeType) {
+	C.SubscribeMarketDataTopic(C.QFMatchSuperApiInstance(api.apiInstance), C.int(topicID), C.enum_QFMATCH_TE_RESUME_TYPE(resumeType))
+}
+
+// ReqQryInstrument 合约查询请求
+func (api *QFMatchMarketAPI) ReqQryInstrument(qryInstrument *GoCQFMatchQryInstrumentField) int {
+	req := C.struct_CQFMatchQryInstrumentField{}
+
+	C.strncpy(&req.SettlementGroupID[0], C.CString(qryInstrument.SettlementGroupID), C.sizeof_TQFMatchSettlementGroupIDType-1)
+	C.strncpy(&req.ProductGroupID[0], C.CString(qryInstrument.ProductGroupID), C.sizeof_TQFMatchProductGroupIDType-1)
+	C.strncpy(&req.ProductID[0], C.CString(qryInstrument.ProductID), C.sizeof_TQFMatchProductIDType-1)
+	C.strncpy(&req.InstrumentID[0], C.CString(qryInstrument.InstrumentID), C.sizeof_TQFMatchInstrumentIDType)
+
+	rtn := C.ReqQryInstrument(C.QFMatchSuperApiInstance(api.apiInstance), &req, C.int(api.getRequestID()))
+
+	return int(rtn)
 }
 
 // OnRspSubscribeTopic 主题订阅回报
