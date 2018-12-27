@@ -64,7 +64,9 @@ type adminAPICallbacks interface {
 	// OnRtnMultiHeartbeat
 }
 
-type adminAPI struct{}
+type adminAPI struct {
+	common *commonAPI
+}
 
 func (api *adminAPI) registerAdminCallbacks(ptrVtCallbacks *C.Callbacks) {
 	// todo: register admin callback apis

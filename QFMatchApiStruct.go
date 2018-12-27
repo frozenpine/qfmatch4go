@@ -84,8 +84,8 @@ type GoCQFMatchOrderField struct {
 	InstrumentID        string
 	OrderPriceType      orderPriceType
 	Direction           direction
-	CombOffsetFlag      [4]byte
-	CombHedgeFlag       [4]byte
+	CombOffsetFlag      [4]offsetFlag
+	CombHedgeFlag       [4]hedgeFlag
 	LimitPrice          float32
 	VolumeTotalOriginal int
 	TimeCondition       timeCondition

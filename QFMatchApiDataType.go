@@ -33,7 +33,7 @@ const (
 	DSell
 )
 
-func (d direction) ToString() string {
+func (d direction) GetName() string {
 	switch d {
 	case DBuy:
 		return "买"
@@ -291,7 +291,7 @@ const (
 	OTPutOptions
 )
 
-func (opt optionsType) ToString() string {
+func (opt optionsType) GetName() string {
 	switch opt {
 	case OTNotOptions:
 		return "非期权"
@@ -323,7 +323,7 @@ const (
 	ISClosed
 )
 
-func (status instrumentStatus) ToString() string {
+func (status instrumentStatus) GetName() string {
 	switch status {
 	case ISBeforeTrading:
 		return "开盘前"
@@ -358,7 +358,7 @@ const (
 	IERFuseManual
 )
 
-func (reason enterReason) ToString() string {
+func (reason enterReason) GetName() string {
 	switch reason {
 	case IERAutomatic:
 		return "自动切换"

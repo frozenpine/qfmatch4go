@@ -220,6 +220,17 @@ func convertDepthMarketDataField(pDepthMarketData *C.struct_CQFMatchDepthMarketD
 	return &data
 }
 
+func transformGoCQFMatchQryInstrumentField(qryInstrument *GoCQFMatchQryInstrumentField) *C.struct_CQFMatchQryInstrumentField {
+	req := C.struct_CQFMatchQryInstrumentField{}
+
+	C.strncpy(&req.SettlementGroupID[0], C.CString(qryInstrument.SettlementGroupID), C.sizeof_TQFMatchSettlementGroupIDType-1)
+	C.strncpy(&req.ProductGroupID[0], C.CString(qryInstrument.ProductGroupID), C.sizeof_TQFMatchProductGroupIDType-1)
+	C.strncpy(&req.ProductID[0], C.CString(qryInstrument.ProductID), C.sizeof_TQFMatchProductIDType-1)
+	C.strncpy(&req.InstrumentID[0], C.CString(qryInstrument.InstrumentID), C.sizeof_TQFMatchInstrumentIDType)
+
+	return &req
+}
+
 //export goOnRspSubscribeTopic
 func goOnRspSubscribeTopic(instance C.QFMatchSuperApiInstance, pDissemination *C.struct_CQFMatchDisseminationField, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {
 	if pDissemination == nil {
@@ -320,7 +331,9 @@ func goOnRtnDepthMarketData(instance C.QFMatchSuperApiInstance, pDepthMarketData
 	}
 }
 
-type marketAPI struct{}
+type marketAPI struct {
+	common *commonAPI
+}
 
 // QFMatchMarketAPICallbacks Quantfair撮合引擎行情API回调接口
 type QFMatchMarketAPICallbacks interface {
@@ -353,6 +366,7 @@ func (api *QFMatchMarketAPI) RegisterCallbacks(cb QFMatchMarketAPICallbacks) {
 
 	api.registerCommonCallbacks(&vtCallbacks)
 	api.registerMarketCallbacks(&vtCallbacks)
+	api.marketAPI.common = &api.commonAPI
 
 	C.RegisterCallbacks(C.QFMatchSuperApiInstance(api.apiInstance), &vtCallbacks)
 
@@ -360,20 +374,16 @@ func (api *QFMatchMarketAPI) RegisterCallbacks(cb QFMatchMarketAPICallbacks) {
 }
 
 // SubscribeMarketDataTopic 订阅市场行情
-func (api *QFMatchMarketAPI) SubscribeMarketDataTopic(topicID int, resumeType ResumeType) {
-	C.SubscribeMarketDataTopic(C.QFMatchSuperApiInstance(api.apiInstance), C.int(topicID), C.enum_QFMATCH_TE_RESUME_TYPE(resumeType))
+func (api *marketAPI) SubscribeMarketDataTopic(topicID int, resumeType ResumeType) {
+	C.SubscribeMarketDataTopic(C.QFMatchSuperApiInstance(api.common.apiInstance), C.int(topicID), C.enum_QFMATCH_TE_RESUME_TYPE(resumeType))
 }
 
 // ReqQryInstrument 合约查询请求
-func (api *QFMatchMarketAPI) ReqQryInstrument(qryInstrument *GoCQFMatchQryInstrumentField) int {
-	req := C.struct_CQFMatchQryInstrumentField{}
-
-	C.strncpy(&req.SettlementGroupID[0], C.CString(qryInstrument.SettlementGroupID), C.sizeof_TQFMatchSettlementGroupIDType-1)
-	C.strncpy(&req.ProductGroupID[0], C.CString(qryInstrument.ProductGroupID), C.sizeof_TQFMatchProductGroupIDType-1)
-	C.strncpy(&req.ProductID[0], C.CString(qryInstrument.ProductID), C.sizeof_TQFMatchProductIDType-1)
-	C.strncpy(&req.InstrumentID[0], C.CString(qryInstrument.InstrumentID), C.sizeof_TQFMatchInstrumentIDType)
-
-	rtn := C.ReqQryInstrument(C.QFMatchSuperApiInstance(api.apiInstance), &req, C.int(api.getRequestID()))
+func (api *marketAPI) ReqQryInstrument(qryInstrument *GoCQFMatchQryInstrumentField) int {
+	rtn := C.ReqQryInstrument(
+		C.QFMatchSuperApiInstance(api.common.apiInstance),
+		transformGoCQFMatchQryInstrumentField(qryInstrument),
+		C.int(api.common.getRequestID()))
 
 	return int(rtn)
 }
@@ -411,11 +421,15 @@ func (api *marketAPI) OnRspQryInstrument(instrument *GoCQFMatchRspInstrumentFiel
 		case PCOptions:
 			log.Printf("[%s.%s] %s: PrdID[%s], Tick[%f], xVol[%d], Udr[%s]\n", instrument.ProductGroupID, instrument.InstrumentID, instrument.InstrumentName, instrument.ProductID, instrument.PriceTick, instrument.VolumeMultiple, instrument.UnderlyingInstrID)
 		}
+
+		if isLast {
+			log.Printf("Instruments query finished.")
+		}
 	}
 }
 
 func showInstrumentStatus(insStatus *GoCQFMatchInstrumentStatusField) {
-	log.Printf("[%s]: %s enter %s by %s\n", insStatus.InstrumentID, insStatus.EnterTime.Format("2006-01-02 15:04:05"), insStatus.InstrumentStatus.ToString(), insStatus.EnterReason.ToString())
+	log.Printf("[%s]: %s enter %s by %s\n", insStatus.InstrumentID, insStatus.EnterTime.Format("2006-01-02 15:04:05"), insStatus.InstrumentStatus.GetName(), insStatus.EnterReason.GetName())
 }
 
 // OnRspQryInstrumentStatus 合约状态查询回报

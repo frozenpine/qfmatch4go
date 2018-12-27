@@ -20,6 +20,13 @@ import (
 	"github.com/djimenez/iconv-go"
 )
 
+// ToCChar Convert user defined enum(uint8) to C.char
+func ToCChar(enum interface{}) C.char {
+	enumValues := [10]byte{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}
+
+	return C.char(enumValues[enum.(uint8)])
+}
+
 var apiMap map[int]interface{}
 
 type commonAPICallbacks interface {
