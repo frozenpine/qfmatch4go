@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"time"
 
 	"gitlab.quantdo.cn/yuanyang/qfmatch4go"
@@ -44,6 +47,12 @@ func (api *myAPI) OnRspUserLogin(rspUserLogin *qfmatch4go.GoCQFMatchRspUserLogin
 	time.Sleep(time.Second)
 
 	api.ReqQryInstrument(&qryInstrument)
+
+	time.Sleep(time.Second)
+
+	qryInsStatus := qfmatch4go.GoCQFMatchQryInstrumentStatusField{}
+
+	api.ReqQryInstrumentStatus(&qryInsStatus)
 }
 
 func main() {
@@ -60,7 +69,10 @@ func main() {
 
 	api.Init()
 
-	for {
-		time.Sleep(time.Second * 5)
-	}
+	channel := make(chan os.Signal, 1)
+
+	signal.Notify(channel, os.Interrupt, os.Kill)
+
+	s := <-channel
+	fmt.Println("Terminating by: ", s)
 }
