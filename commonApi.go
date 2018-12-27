@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -20,11 +21,13 @@ import (
 	"github.com/djimenez/iconv-go"
 )
 
+var enumChars = [10]byte{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}
+
 // ToCChar Convert user defined enum(uint8) to C.char
 func ToCChar(enum interface{}) C.char {
-	enumChars := [10]byte{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}
+	enumValue := reflect.ValueOf(enum).Uint()
 
-	return C.char(enumChars[enum.(uint8)])
+	return C.char(enumChars[enumValue])
 }
 
 var apiMap map[int]interface{}

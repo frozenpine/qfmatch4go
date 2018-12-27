@@ -39,12 +39,14 @@ func (api *myAPI) OnRspUserLogin(rspUserLogin *qfmatch4go.GoCQFMatchRspUserLogin
 		time.Sleep(time.Second * 3)
 
 		api.Login()
+
+		return
 	}
+
+	time.Sleep(time.Second)
 
 	qryInstrument := qfmatch4go.GoCQFMatchQryInstrumentField{}
 	qryInstrument.SettlementGroupID = "SG01"
-
-	time.Sleep(time.Second)
 
 	api.ReqQryInstrument(&qryInstrument)
 
@@ -53,6 +55,12 @@ func (api *myAPI) OnRspUserLogin(rspUserLogin *qfmatch4go.GoCQFMatchRspUserLogin
 	qryInsStatus := qfmatch4go.GoCQFMatchQryInstrumentStatusField{}
 
 	api.ReqQryInstrumentStatus(&qryInsStatus)
+
+	time.Sleep(time.Second)
+
+	qryMBLMarket := qfmatch4go.GoCQFMatchQryMBLMarketDataField{}
+
+	api.ReqQryMBLMarketData(&qryMBLMarket)
 }
 
 func main() {
