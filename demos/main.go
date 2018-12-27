@@ -43,6 +43,8 @@ func (api *myAPI) OnRspUserLogin(rspUserLogin *qfmatch4go.GoCQFMatchRspUserLogin
 		return
 	}
 
+	log.Println("Current trading day:", api.GetTradingDay())
+
 	time.Sleep(time.Second)
 
 	qryInstrument := qfmatch4go.GoCQFMatchQryInstrumentField{}
@@ -77,10 +79,14 @@ func main() {
 
 	api.Init()
 
+	log.Println("API version:", api.GetVersion())
+
 	channel := make(chan os.Signal, 1)
 
 	signal.Notify(channel, os.Interrupt, os.Kill)
 
 	s := <-channel
 	fmt.Println("Terminating by: ", s)
+
+	api.Release()
 }

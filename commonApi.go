@@ -284,6 +284,7 @@ func (api *commonAPI) GetVersion() string {
 // Release 删除接口对象
 func (api *commonAPI) Release() {
 	C.Release(C.QFMatchSuperApiInstance(api.apiInstance))
+	C.Join(C.QFMatchSuperApiInstance(api.apiInstance))
 }
 
 // Init 初始化，调用后接口才开始工作
