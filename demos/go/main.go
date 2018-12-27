@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"time"
 
 	"gitlab.quantdo.cn/yuanyang/qfmatch4go"
@@ -10,20 +11,32 @@ type myAPI struct {
 	qfmatch4go.QFMatchMarketAPI
 }
 
-func (api *myAPI) OnFrontConnected() {
-	api.QFMatchMarketAPI.OnFrontConnected()
-
+func (api *myAPI) Login() {
 	loginReq := qfmatch4go.GoCQFMatchReqUserLoginField{}
 	loginReq.UserID = "900000001"
 	loginReq.Password = "111111"
 
+	api.ReqUserLogin(&loginReq)
+}
+
+func (api *myAPI) OnFrontConnected() {
+	api.QFMatchMarketAPI.OnFrontConnected()
+
 	time.Sleep(time.Second)
 
-	api.ReqUserLogin(&loginReq)
+	api.Login()
 }
 
 func (api *myAPI) OnRspUserLogin(rspUserLogin *qfmatch4go.GoCQFMatchRspUserLoginField, err *qfmatch4go.GoCQFMatchRspInfoField, requestID int, isLast bool) {
 	api.QFMatchMarketAPI.OnRspUserLogin(rspUserLogin, err, requestID, isLast)
+
+	if err != nil && err.ErrorID == 75 {
+		log.Printf("3秒后尝试重新登录...\n")
+
+		time.Sleep(time.Second * 3)
+
+		api.Login()
+	}
 
 	qryInstrument := qfmatch4go.GoCQFMatchQryInstrumentField{}
 	qryInstrument.SettlementGroupID = "SG01"
