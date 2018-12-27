@@ -36,9 +36,7 @@ char *UserID = "900000001";
 char *Password = "111111";
 char *FrontAddress = "tcp://192.168.92.26:12701";
 
-void OnFrontConnected(QFMatchSuperApiInstance client) {
-    printf("Front connected.\n");
-
+void Login(QFMatchSuperApiInstance client) {
     struct CQFMatchReqUserLoginField user;
     memset(&user, 0, sizeof(struct CQFMatchReqUserLoginField));
 
@@ -48,63 +46,52 @@ void OnFrontConnected(QFMatchSuperApiInstance client) {
     ReqUserLogin(client, &user, 0);
 }
 
+void OnFrontConnected(QFMatchSuperApiInstance client) {
+    printf("Front connected.\n");
+
+    Login(client);
+}
+
 void OnRspUserLogin(QFMatchSuperApiInstance client, struct CQFMatchRspUserLoginField *pRspUserLogin, struct CQFMatchRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {
-    if (pRspInfo == NULL || pRspUserLogin == NULL) {
+    if (pRspUserLogin == NULL) {
         return;
     }
 
-    if (pRspInfo->ErrorID == 0) {
+    if (pRspInfo != NULL && pRspInfo->ErrorID != 0) {
+        printf("用户登录失败: [%d]%s\n", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
+
+        if (pRspInfo->ErrorID == 75) {
+            printf("3秒后尝试重新登录\n");
+
+            SLEEP(3000);
+
+            Login(client);
+        }
+    } else {
         printf("User[%s] login successfully: %s\n", pRspUserLogin->UserID, pRspInfo->ErrorMsg);
 
         struct CQFMatchQryInstrumentField qry;
         memset(&qry, 0, sizeof(struct CQFMatchQryInstrumentField));
 
         SLEEP(1000);
+        
         ReqQryInstrument(client, &qry, nRequestID + 1);
-    } else {
-        printf("用户登录失败: [%d]%s\n", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
-    }
-
-    if (pRspInfo->ErrorID == 75) {
-        printf("3秒后尝试重新登录\n");
-
-        SLEEP(3000);
-
-        struct CQFMatchReqUserLoginField user;
-        memset(&user, 0, sizeof(struct CQFMatchReqUserLoginField));
-
-        strncpy(&user.UserID[0], UserID, sizeof(TQFMatchUserIDType)-1);
-        strncpy(&user.Password[0], Password, sizeof(TQFMatchPasswordType)-1);
-
-        ReqUserLogin(client, &user, 0);
     }
 }
 
 void OnRspQryInstrument(QFMatchSuperApiInstance client, struct CQFMatchRspInstrumentField *pInstruemnt, struct CQFMatchRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {
-    if (pRspInfo == NULL || pInstruemnt == NULL) {
+    if (pInstruemnt == NULL) {
         return;
     }
 
-    if (pRspInfo->ErrorID == 0) {
+    if (pRspInfo != NULL && pRspInfo->ErrorID != 0) {
+        printf("合约查询失败: [%d]%s\n", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
+    } else {
         printf("Instrument[%s.%s]: Name[%s], PriceTick[%f]\n", pInstruemnt->ProductGroupID, pInstruemnt->InstrumentID, pInstruemnt->InstrumentName, pInstruemnt->PriceTick);
         
         if (bIsLast) {
             printf("Query finished.\n");
         }
-    } else {
-        printf("合约查询失败: [%d]%s\n", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
-    }
-
-    if (pRspInfo->ErrorID == 54) {
-        printf("3秒后尝试重新查询\n");
-
-        SLEEP(3000);
-
-        struct CQFMatchQryInstrumentField qry;
-        memset(&qry, 0, sizeof(struct CQFMatchQryInstrumentField));
-        strncpy(&qry.SettlementGroupID, "SG01", sizeof(TQFMatchSettlementGroupIDType)-1);
-
-        ReqQryInstrument(client, &qry, nRequestID + 1);
     }
 }
 
