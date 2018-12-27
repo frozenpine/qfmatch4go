@@ -381,7 +381,7 @@ func (api *QFMatchMarketAPI) ReqQryInstrument(qryInstrument *GoCQFMatchQryInstru
 // OnRspSubscribeTopic 主题订阅回报
 func (api *marketAPI) OnRspSubscribeTopic(rspSubscribeTopic *GoCQFMatchDisseminationField, err *GoCQFMatchRspInfoField, requestID int, isLast bool) {
 	if err != nil && err.ErrorID != 0 {
-		log.Fatalf("Faild on subscribe topic: [%d]%s\n", err.ErrorID, err.ErrorMsg)
+		log.Printf("Faild on subscribe topic: [%d]%s\n", err.ErrorID, err.ErrorMsg)
 	} else {
 		log.Printf("Subscribe topic[%d] succeded.\n", rspSubscribeTopic.SequenceSeries)
 	}
@@ -394,7 +394,7 @@ func showMarketData(marketData *GoCQFMatchMarketDataField) {
 // OnRspQryMarketData 行情查询回报
 func (api *marketAPI) OnRspQryMarketData(marketData *GoCQFMatchMarketDataField, err *GoCQFMatchRspInfoField, requestID int, isLast bool) {
 	if err != nil && err.ErrorID != 0 {
-		log.Fatalf("Market data query failed: [%d]%s\n", err.ErrorID, err.ErrorMsg)
+		log.Printf("Market data query failed: [%d]%s\n", err.ErrorID, err.ErrorMsg)
 	} else {
 		showMarketData(marketData)
 	}
@@ -403,7 +403,7 @@ func (api *marketAPI) OnRspQryMarketData(marketData *GoCQFMatchMarketDataField, 
 // OnRspQryInstrument 合约查询回报
 func (api *marketAPI) OnRspQryInstrument(instrument *GoCQFMatchRspInstrumentField, err *GoCQFMatchRspInfoField, requestID int, isLast bool) {
 	if err != nil && err.ErrorID != 0 {
-		log.Fatalf("Instrument query failed: [%d]%s\n", err.ErrorID, err.ErrorMsg)
+		log.Printf("Instrument query failed: [%d]%s\n", err.ErrorID, err.ErrorMsg)
 	} else {
 		switch instrument.ProductClass {
 		case PCFuture:
@@ -421,7 +421,7 @@ func showInstrumentStatus(insStatus *GoCQFMatchInstrumentStatusField) {
 // OnRspQryInstrumentStatus 合约状态查询回报
 func (api *marketAPI) OnRspQryInstrumentStatus(insStatus *GoCQFMatchInstrumentStatusField, err *GoCQFMatchRspInfoField, requestID int, isLast bool) {
 	if err != nil && err.ErrorID != 0 {
-		log.Fatalf("Instrument status query failed: [%d]%s\n", err.ErrorID, err.ErrorMsg)
+		log.Printf("Instrument status query failed: [%d]%s\n", err.ErrorID, err.ErrorMsg)
 	} else {
 		showInstrumentStatus(insStatus)
 	}
