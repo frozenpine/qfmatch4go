@@ -36,7 +36,6 @@ type adminAPICallbacks interface {
 	// OnRspQryUserSession
 	// OnRspQryUser
 	// OnRspQryParticipant
-	// OnRspQryMBLMarketData
 	// OnRspQryInformation
 	// OnRspQryClientPositionDetail
 	// OnRtnExecOrder

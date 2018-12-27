@@ -25,7 +25,8 @@ type marketAPICallbacks interface {
 	OnRspQryInstrumentStatus(insStatus *GoCQFMatchInstrumentStatusField, err *GoCQFMatchRspInfoField, requestID int, isLast bool)
 	// OnRtnInsInstrument
 	// OnRtnDelInstrument
-	// OnRspQryTopic
+	OnRspQryTopic(dissemination *GoCQFMatchDisseminationField, err *GoCQFMatchRspInfoField, requestID int, isLast bool)
+	OnRspQryMBLMarketData(mblMarketData *GoCQFMatchMBLMarketDataField, err *GoCQFMatchRspInfoField, requestID int, isLast bool)
 	OnRtnInstrumentStatus(insStatus *GoCQFMatchInstrumentStatusField)
 	OnRtnMarketData(marketData *GoCQFMatchMarketDataField)
 	OnRtnDepthMarketData(depthMarketData *GoCQFMatchDepthMarketDataField)
@@ -143,6 +144,20 @@ func convertInstrumentStatusField(pInstrumentStatus *C.struct_CQFMatchInstrument
 	return &data
 }
 
+func convertCQFMatchMBLMarketDataField(pMBLMarketData *C.struct_CQFMatchMBLMarketDataField) *GoCQFMatchMBLMarketDataField {
+	data := GoCQFMatchMBLMarketDataField{}
+
+	data.InstrumentID = C.GoString(&pMBLMarketData.InstrumentID[0])
+
+	d, _ := strconv.ParseUint(string(pMBLMarketData.Direction), 10, 8)
+	data.Direction = direction(d)
+
+	data.Price = float64(pMBLMarketData.Price)
+	data.Volume = int(pMBLMarketData.Volume)
+
+	return &data
+}
+
 func convertDepthMarketDataField(pDepthMarketData *C.struct_CQFMatchDepthMarketDataField) *GoCQFMatchDepthMarketDataField {
 	data := GoCQFMatchDepthMarketDataField{}
 
@@ -171,23 +186,23 @@ func convertDepthMarketDataField(pDepthMarketData *C.struct_CQFMatchDepthMarketD
 
 	data.InstrumentID = C.GoString(&pDepthMarketData.InstrumentID[0])
 
-	data.Bids = make([]PriceItem, 0, 5)
-	data.Asks = make([]PriceItem, 0, 5)
+	data.Bids = make([]priceItem, 0, 5)
+	data.Asks = make([]priceItem, 0, 5)
 
 	if pDepthMarketData.BidVolume1 > 0 {
-		data.Bids = append(data.Bids, PriceItem{Price: float64(pDepthMarketData.BidPrice1), Volume: int(pDepthMarketData.BidVolume1)})
+		data.Bids = append(data.Bids, priceItem{Price: float64(pDepthMarketData.BidPrice1), Volume: int(pDepthMarketData.BidVolume1)})
 
 		if pDepthMarketData.BidVolume2 > 0 {
-			data.Bids = append(data.Bids, PriceItem{Price: float64(pDepthMarketData.BidPrice2), Volume: int(pDepthMarketData.BidVolume2)})
+			data.Bids = append(data.Bids, priceItem{Price: float64(pDepthMarketData.BidPrice2), Volume: int(pDepthMarketData.BidVolume2)})
 
 			if pDepthMarketData.BidVolume3 > 0 {
-				data.Bids = append(data.Bids, PriceItem{Price: float64(pDepthMarketData.BidPrice3), Volume: int(pDepthMarketData.BidVolume3)})
+				data.Bids = append(data.Bids, priceItem{Price: float64(pDepthMarketData.BidPrice3), Volume: int(pDepthMarketData.BidVolume3)})
 
 				if pDepthMarketData.BidVolume4 > 0 {
-					data.Bids = append(data.Bids, PriceItem{Price: float64(pDepthMarketData.BidPrice4), Volume: int(pDepthMarketData.BidVolume4)})
+					data.Bids = append(data.Bids, priceItem{Price: float64(pDepthMarketData.BidPrice4), Volume: int(pDepthMarketData.BidVolume4)})
 
 					if pDepthMarketData.BidVolume5 > 0 {
-						data.Bids = append(data.Bids, PriceItem{Price: float64(pDepthMarketData.BidPrice5), Volume: int(pDepthMarketData.BidVolume5)})
+						data.Bids = append(data.Bids, priceItem{Price: float64(pDepthMarketData.BidPrice5), Volume: int(pDepthMarketData.BidVolume5)})
 					}
 				}
 			}
@@ -195,19 +210,19 @@ func convertDepthMarketDataField(pDepthMarketData *C.struct_CQFMatchDepthMarketD
 	}
 
 	if pDepthMarketData.AskVolume1 > 0 {
-		data.Asks = append(data.Asks, PriceItem{Price: float64(pDepthMarketData.AskPrice1), Volume: int(pDepthMarketData.AskVolume1)})
+		data.Asks = append(data.Asks, priceItem{Price: float64(pDepthMarketData.AskPrice1), Volume: int(pDepthMarketData.AskVolume1)})
 
 		if pDepthMarketData.AskVolume2 > 0 {
-			data.Asks = append(data.Asks, PriceItem{Price: float64(pDepthMarketData.AskPrice2), Volume: int(pDepthMarketData.AskVolume2)})
+			data.Asks = append(data.Asks, priceItem{Price: float64(pDepthMarketData.AskPrice2), Volume: int(pDepthMarketData.AskVolume2)})
 
 			if pDepthMarketData.AskVolume3 > 0 {
-				data.Asks = append(data.Asks, PriceItem{Price: float64(pDepthMarketData.AskPrice3), Volume: int(pDepthMarketData.AskVolume3)})
+				data.Asks = append(data.Asks, priceItem{Price: float64(pDepthMarketData.AskPrice3), Volume: int(pDepthMarketData.AskVolume3)})
 
 				if pDepthMarketData.AskVolume4 > 0 {
-					data.Asks = append(data.Asks, PriceItem{Price: float64(pDepthMarketData.AskPrice4), Volume: int(pDepthMarketData.AskVolume4)})
+					data.Asks = append(data.Asks, priceItem{Price: float64(pDepthMarketData.AskPrice4), Volume: int(pDepthMarketData.AskVolume4)})
 
 					if pDepthMarketData.AskVolume5 > 0 {
-						data.Asks = append(data.Asks, PriceItem{Price: float64(pDepthMarketData.AskPrice5), Volume: int(pDepthMarketData.AskVolume5)})
+						data.Asks = append(data.Asks, priceItem{Price: float64(pDepthMarketData.AskPrice5), Volume: int(pDepthMarketData.AskVolume5)})
 					}
 				}
 			}
@@ -216,6 +231,15 @@ func convertDepthMarketDataField(pDepthMarketData *C.struct_CQFMatchDepthMarketD
 
 	data.FundingRate = float64(pDepthMarketData.FundingRate)
 	data.FairPrice = float64(pDepthMarketData.FairPrice)
+
+	return &data
+}
+
+func convertCQFMatchDisseminationField(pDissemination *C.struct_CQFMatchDisseminationField) *GoCQFMatchDisseminationField {
+	data := GoCQFMatchDisseminationField{}
+
+	data.SequenceNo = int(pDissemination.SequenceNo)
+	data.SequenceSeries = int(pDissemination.SequenceSeries)
 
 	return &data
 }
@@ -245,6 +269,25 @@ func transformGoCQFMatchQryInstrumentStatusField(qryInsStatus *GoCQFMatchQryInst
 
 	C.strncpy(&qry.InstIDStart[0], C.CString(qryInsStatus.InstIDStart), C.sizeof_TQFMatchInstrumentIDType-1)
 	C.strncpy(&qry.InstIDEnd[0], C.CString(qryInsStatus.InstIDEnd), C.sizeof_TQFMatchInstrumentIDType-1)
+
+	return &qry
+}
+
+func transformGoCQFMatchQryMarketDataField(qryMarketData *GoCQFMatchQryMarketDataField) *C.struct_CQFMatchQryMarketDataField {
+	qry := C.struct_CQFMatchQryMarketDataField{}
+
+	C.strncpy(&qry.ProductID[0], C.CString(qryMarketData.ProductID), C.sizeof_TQFMatchProductIDType-1)
+	C.strncpy(&qry.InstrumentID[0], C.CString(qryMarketData.InstrumentID), C.sizeof_TQFMatchInstrumentIDType-1)
+
+	return &qry
+}
+
+func transformGoCQFMatchQryMBLMarketDataField(qryMBLMarketData *GoCQFMatchQryMBLMarketDataField) *C.struct_CQFMatchQryMBLMarketDataField {
+	qry := C.struct_CQFMatchQryMBLMarketDataField{}
+
+	C.strncpy(&qry.InstIDStart[0], C.CString(qryMBLMarketData.InstIDStart), C.sizeof_TQFMatchInstrumentIDType-1)
+	C.strncpy(&qry.InstIDEnd[0], C.CString(qryMBLMarketData.InstIDEnd), C.sizeof_TQFMatchInstrumentIDType-1)
+	qry.Direction = ToCChar(qryMBLMarketData.Direction)
 
 	return &qry
 }
@@ -301,14 +344,37 @@ func goOnRspQryInstrumentStatus(instance C.QFMatchSuperApiInstance, pInstrumentS
 	}
 }
 
-//export goOnRtnInsInstrument
+// // export goOnRtnInsInstrument
 // func goOnRtnInsInstrument(instance C.QFMatchSuperApiInstance, pInstrument *C.struct_CQFMatchInstrumentField) {}
 
 // //export goOnRtnDelInstrument
 // func goOnRtnDelInstrument(instance C.QFMatchSuperApiInstance, pInstrument *C.struct_CQFMatchInstrumentField) {}
 
-// //export goOnRspQryTopic
-// func goOnRspQryTopic(instance C.QFMatchSuperApiInstance, pDissemination *C.struct_CQFMatchDisseminationField, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {}
+//export goOnRspQryTopic
+func goOnRspQryTopic(instance C.QFMatchSuperApiInstance, pDissemination *C.struct_CQFMatchDisseminationField, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {
+	if pDissemination == nil {
+		return
+	}
+
+	callback := getInstanceCallback(instance)
+
+	if callback != nil {
+		callback.(marketAPICallbacks).OnRspQryTopic(convertDisseminationField(pDissemination), convertRspInfo(pRspInfo), int(nRequestID), bool(bIsLast))
+	}
+}
+
+//export goOnRspQryMBLMarketData
+func goOnRspQryMBLMarketData(instance C.QFMatchSuperApiInstance, pMBLMarketData *C.struct_CQFMatchMBLMarketDataField, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {
+	if pMBLMarketData == nil {
+		return
+	}
+
+	callback := getInstanceCallback(instance)
+
+	if callback != nil {
+		callback.(marketAPICallbacks).OnRspQryMBLMarketData(convertCQFMatchMBLMarketDataField(pMBLMarketData), convertRspInfo(pRspInfo), int(nRequestID), bool(bIsLast))
+	}
+}
 
 //export goOnRtnInstrumentStatus
 func goOnRtnInstrumentStatus(instance C.QFMatchSuperApiInstance, pInstrumentStatus *C.struct_CQFMatchInstrumentStatusField) {
@@ -372,7 +438,8 @@ func (api *marketAPI) registerMarketCallbacks(ptrVtCallbacks *C.Callbacks) {
 	ptrVtCallbacks.ptrOnRspQryInstrumentStatus = C.FuncOnRspQryInstrumentStatus(C.cgoOnRspQryInstrumentStatus)
 	// ptrVtCallbacks.ptrOnRtnInsInstrument = C.FuncOnRtnInsInstrument(C.cgoOnRtnInsInstrument)
 	// ptrVtCallbacks.ptrOnRtnDelInstrument = C.FuncOnRtnDelInstrument(C.cgoOnRtnDelInstrument)
-	// ptrVtCallbacks.ptrOnRspQryTopic = C.FuncOnRspQryTopic(C.cgoOnRspQryTopic)
+	ptrVtCallbacks.ptrOnRspQryTopic = C.FuncOnRspQryTopic(C.cgoOnRspQryTopic)
+	ptrVtCallbacks.ptrOnRspQryMBLMarketData = C.FuncOnRspQryMBLMarketData(C.cgoOnRspQryMBLMarketData)
 	ptrVtCallbacks.ptrOnRtnInstrumentStatus = C.FuncOnRtnInstrumentStatus(C.cgoOnRtnInstrumentStatus)
 	ptrVtCallbacks.ptrOnRtnMarketData = C.FuncOnRtnMarketData(C.cgoOnRtnMarketData)
 	ptrVtCallbacks.ptrOnRtnDepthMarketData = C.FuncOnRtnDepthMarketData(C.cgoOnRtnDepthMarketData)
@@ -412,8 +479,30 @@ func (api *marketAPI) ReqQryInstrument(qryInstrument *GoCQFMatchQryInstrumentFie
 	return int(rtn)
 }
 
+// ReqQryInstrumentStatus 合约交易状态查询请求
 func (api *marketAPI) ReqQryInstrumentStatus(qryInsStatus *GoCQFMatchQryInstrumentStatusField) int {
 	rtn := C.ReqQryInstrumentStatus(C.QFMatchSuperApiInstance(api.common.apiInstance), transformGoCQFMatchQryInstrumentStatusField(qryInsStatus), C.int(api.common.getRequestID()))
+
+	return int(rtn)
+}
+
+// ReqQryMarketData 普通行情查询请求
+func (api *marketAPI) ReqQryMarketData(qryMarketData *GoCQFMatchQryMarketDataField) int {
+	rtn := C.ReqQryMarketData(C.QFMatchSuperApiInstance(api.common.apiInstance), transformGoCQFMatchQryMarketDataField(qryMarketData), C.int(api.common.getRequestID()))
+
+	return int(rtn)
+}
+
+// ReqQryTopic 主题查询请求
+func (api *marketAPI) ReqQryTopic(dissemination *GoCQFMatchDisseminationField) int {
+	rtn := C.ReqQryTopic(C.QFMatchSuperApiInstance(api.common.apiInstance), transformGoCQFMatchDisseminationField(dissemination), C.int(api.common.getRequestID()))
+
+	return int(rtn)
+}
+
+// ReqQryMBLMarketData 合约价位查询
+func (api *marketAPI) ReqQryMBLMarketData(qryMBLMarketData *GoCQFMatchQryMBLMarketDataField) int {
+	rtn := C.ReqQryMBLMarketData(C.QFMatchSuperApiInstance(api.common.apiInstance), transformGoCQFMatchQryMBLMarketDataField(qryMBLMarketData), C.int(api.common.getRequestID()))
 
 	return int(rtn)
 }
@@ -471,6 +560,32 @@ func (api *marketAPI) OnRspQryInstrumentStatus(insStatus *GoCQFMatchInstrumentSt
 
 		if isLast {
 			log.Println("Instrument status query finished.")
+		}
+	}
+}
+
+// OnRspQryTopic 主题查询应答
+func (api *marketAPI) OnRspQryTopic(dissemination *GoCQFMatchDisseminationField, err *GoCQFMatchRspInfoField, requestID int, isLast bool) {
+	if err != nil && err.ErrorID != 0 {
+		log.Printf("Topic query failed: [%d]%s\n", err.ErrorID, err.ErrorMsg)
+	} else {
+		log.Printf("Available topic: %d, %d\n", dissemination.SequenceNo, dissemination.SequenceSeries)
+
+		if isLast {
+			log.Println("Topic query finished.")
+		}
+	}
+}
+
+// OnRspQryMBLMarketData 合约价位查询应答
+func (api *marketAPI) OnRspQryMBLMarketData(mblMarketData *GoCQFMatchMBLMarketDataField, err *GoCQFMatchRspInfoField, requestID int, isLast bool) {
+	if err != nil && err.ErrorID != 0 {
+		log.Printf("MBLMarketData query failed: [%d]%s\n", err.ErrorID, err.ErrorMsg)
+	} else {
+		log.Printf("[%s] %s: P[%f], V[%d]\n", mblMarketData.InstrumentID, mblMarketData.Direction.GetName(), mblMarketData.Price, mblMarketData.Volume)
+
+		if isLast {
+			log.Println("MBLMarketData query finished.")
 		}
 	}
 }

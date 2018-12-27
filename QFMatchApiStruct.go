@@ -248,8 +248,8 @@ type GoCQFMatchInstrumentStatusField struct {
 	EnterReason       enterReason
 }
 
-// PriceItem 价格实体
-type PriceItem struct {
+// priceItem 价格实体
+type priceItem struct {
 	Price  float64
 	Volume int
 }
@@ -277,8 +277,8 @@ type GoCQFMatchDepthMarketDataField struct {
 	CurrDelta          float64
 	UpdateTime         time.Time
 	InstrumentID       string
-	Bids               []PriceItem
-	Asks               []PriceItem
+	Bids               []priceItem
+	Asks               []priceItem
 	FundingRate        float64
 	FairPrice          float64
 }
@@ -295,4 +295,24 @@ type GoCQFMatchQryInstrumentField struct {
 type GoCQFMatchQryInstrumentStatusField struct {
 	InstIDStart string
 	InstIDEnd   string
+}
+
+// GoCQFMatchQryMarketDataField 普通行情查询请求
+type GoCQFMatchQryMarketDataField struct {
+	ProductID    string
+	InstrumentID string
+}
+
+// GoCQFMatchQryMBLMarketDataField 合约价位查询
+type GoCQFMatchQryMBLMarketDataField struct {
+	InstIDStart string
+	InstIDEnd   string
+	Direction   direction
+}
+
+// GoCQFMatchMBLMarketDataField 分价表
+type GoCQFMatchMBLMarketDataField struct {
+	InstrumentID string
+	Direction    direction
+	priceItem
 }

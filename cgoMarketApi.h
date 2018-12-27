@@ -25,8 +25,11 @@ extern void goOnRspQryInstrumentStatus(QFMatchSuperApiInstance instance, struct 
 // void cgoOnRtnDelInstrument(QFMatchSuperApiInstance instance, struct CQFMatchInstrumentField *pInstrument);
 // extern void goOnRtnDelInstrument(QFMatchSuperApiInstance instance, struct CQFMatchInstrumentField *pInstrument);
 
-// void cgoOnRspQryTopic(QFMatchSuperApiInstance instance, struct CQFMatchDisseminationField *pDissemination, struct CQFMatchRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-// extern void goOnRspQryTopic(QFMatchSuperApiInstance instance, struct CQFMatchDisseminationField *pDissemination, struct CQFMatchRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+void cgoOnRspQryTopic(QFMatchSuperApiInstance instance, struct CQFMatchDisseminationField *pDissemination, struct CQFMatchRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+extern void goOnRspQryTopic(QFMatchSuperApiInstance instance, struct CQFMatchDisseminationField *pDissemination, struct CQFMatchRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+void cgoOnRspQryMBLMarketData(QFMatchSuperApiInstance instance, struct CQFMatchMBLMarketDataField *pMBLMarketData, struct CQFMatchRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+extern void goOnRspQryMBLMarketData(QFMatchSuperApiInstance instance, struct CQFMatchMBLMarketDataField *pMBLMarketData, struct CQFMatchRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 void cgoOnRtnInstrumentStatus(QFMatchSuperApiInstance instance, struct CQFMatchInstrumentStatusField *pInstrumentStatus);
 extern void goOnRtnInstrumentStatus(QFMatchSuperApiInstance instance, struct CQFMatchInstrumentStatusField *pInstrumentStatus);

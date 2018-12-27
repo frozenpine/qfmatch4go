@@ -24,9 +24,13 @@ void cgoOnRspQryInstrumentStatus(QFMatchSuperApiInstance instance, struct CQFMat
 //     goOnRtnDelInstrument(instance, pInstrument);
 // }
 
-// void cgoOnRspQryTopic(QFMatchSuperApiInstance instance, struct CQFMatchDisseminationField *pDissemination, struct CQFMatchRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {
-//     goOnRspQryTopic(instance, pDissemination, pRspInfo, nRequestID, bIsLast);
-// }
+void cgoOnRspQryTopic(QFMatchSuperApiInstance instance, struct CQFMatchDisseminationField *pDissemination, struct CQFMatchRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {
+    goOnRspQryTopic(instance, pDissemination, pRspInfo, nRequestID, bIsLast);
+}
+
+void cgoOnRspQryMBLMarketData(QFMatchSuperApiInstance instance, struct CQFMatchMBLMarketDataField *pMBLMarketData, struct CQFMatchRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {
+    goOnRspQryMBLMarketData(instance, pMBLMarketData, pRspInfo, nRequestID, bIsLast);
+}
 
 void cgoOnRtnInstrumentStatus(QFMatchSuperApiInstance instance, struct CQFMatchInstrumentStatusField *pInstrumentStatus) {
     goOnRtnInstrumentStatus(instance, pInstrumentStatus);
