@@ -48,9 +48,11 @@ func getInstanceCallback(instance C.QFMatchSuperApiInstance) interface{} {
 func convertRspInfo(pRspInfo *C.struct_CQFMatchRspInfoField) *GoCQFMatchRspInfoField {
 	rsp := GoCQFMatchRspInfoField{}
 
-	rsp.ErrorID = int(pRspInfo.ErrorID)
-	msg, _ := iconv.ConvertString(C.GoString(&pRspInfo.ErrorMsg[0]), "gbk", "utf-8")
-	rsp.ErrorMsg = msg
+	if pRspInfo != nil {
+		rsp.ErrorID = int(pRspInfo.ErrorID)
+		msg, _ := iconv.ConvertString(C.GoString(&pRspInfo.ErrorMsg[0]), "gbk", "utf-8")
+		rsp.ErrorMsg = msg
+	}
 
 	return &rsp
 }
@@ -166,7 +168,7 @@ func goOnRspError(instance C.QFMatchSuperApiInstance, pRspInfo *C.struct_CQFMatc
 
 //export goOnRspUserLogin
 func goOnRspUserLogin(instance C.QFMatchSuperApiInstance, pRspUserLogin *C.struct_CQFMatchRspUserLoginField, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {
-	if pRspUserLogin == nil || pRspInfo == nil {
+	if pRspUserLogin == nil {
 		return
 	}
 
@@ -179,7 +181,7 @@ func goOnRspUserLogin(instance C.QFMatchSuperApiInstance, pRspUserLogin *C.struc
 
 //export goOnRspUserLogout
 func goOnRspUserLogout(instance C.QFMatchSuperApiInstance, pRspUserLogout *C.struct_CQFMatchRspUserLogoutField, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {
-	if pRspUserLogout == nil || pRspInfo == nil {
+	if pRspUserLogout == nil {
 		return
 	}
 
@@ -192,7 +194,7 @@ func goOnRspUserLogout(instance C.QFMatchSuperApiInstance, pRspUserLogout *C.str
 
 //export goOnRspQryBulletin
 func goOnRspQryBulletin(instance C.QFMatchSuperApiInstance, pBulletin *C.struct_CQFMatchBulletinField, pRspInfo *C.struct_CQFMatchRspInfoField, nRequestID C.int, bIsLast C.bool) {
-	if pBulletin == nil || pRspInfo == nil {
+	if pBulletin == nil {
 		return
 	}
 
@@ -398,7 +400,7 @@ func (api *commonAPI) OnRspError(err *GoCQFMatchRspInfoField, requestID int, isL
 
 // OnRspUserLogin 用户登录消息
 func (api *commonAPI) OnRspUserLogin(rspUserLogin *GoCQFMatchRspUserLoginField, err *GoCQFMatchRspInfoField, requestID int, isLast bool) {
-	if err.ErrorID != 0 {
+	if err != nil && err.ErrorID != 0 {
 		log.Fatalf("User[%s] login failed: [%d]%s\n", rspUserLogin.UserID, err.ErrorID, err.ErrorMsg)
 	} else {
 		api.Logged = true
@@ -408,7 +410,7 @@ func (api *commonAPI) OnRspUserLogin(rspUserLogin *GoCQFMatchRspUserLoginField, 
 
 // OnRspUserLogout 用户登出消息
 func (api *commonAPI) OnRspUserLogout(rspUserLogout *GoCQFMatchRspUserLogoutField, err *GoCQFMatchRspInfoField, requestID int, isLast bool) {
-	if err.ErrorID != 0 {
+	if err != nil && err.ErrorID != 0 {
 		log.Fatalf("User[%s] logout failed: [%d]%s\n", rspUserLogout.UserID, err.ErrorID, err.ErrorMsg)
 	} else {
 		log.Printf("User[%s] logout success\n", rspUserLogout.UserID)
