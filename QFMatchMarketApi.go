@@ -220,15 +220,33 @@ func convertDepthMarketDataField(pDepthMarketData *C.struct_CQFMatchDepthMarketD
 	return &data
 }
 
+func transformGoCQFMatchDisseminationField(dissemination *GoCQFMatchDisseminationField) *C.struct_CQFMatchDisseminationField {
+	diss := C.struct_CQFMatchDisseminationField{}
+
+	diss.SequenceSeries = C.TQFMatchSequenceSeriesType(dissemination.SequenceSeries)
+	diss.SequenceNo = C.TQFMatchSequenceNoType(dissemination.SequenceNo)
+
+	return &diss
+}
+
 func transformGoCQFMatchQryInstrumentField(qryInstrument *GoCQFMatchQryInstrumentField) *C.struct_CQFMatchQryInstrumentField {
-	req := C.struct_CQFMatchQryInstrumentField{}
+	qry := C.struct_CQFMatchQryInstrumentField{}
 
-	C.strncpy(&req.SettlementGroupID[0], C.CString(qryInstrument.SettlementGroupID), C.sizeof_TQFMatchSettlementGroupIDType-1)
-	C.strncpy(&req.ProductGroupID[0], C.CString(qryInstrument.ProductGroupID), C.sizeof_TQFMatchProductGroupIDType-1)
-	C.strncpy(&req.ProductID[0], C.CString(qryInstrument.ProductID), C.sizeof_TQFMatchProductIDType-1)
-	C.strncpy(&req.InstrumentID[0], C.CString(qryInstrument.InstrumentID), C.sizeof_TQFMatchInstrumentIDType)
+	C.strncpy(&qry.SettlementGroupID[0], C.CString(qryInstrument.SettlementGroupID), C.sizeof_TQFMatchSettlementGroupIDType-1)
+	C.strncpy(&qry.ProductGroupID[0], C.CString(qryInstrument.ProductGroupID), C.sizeof_TQFMatchProductGroupIDType-1)
+	C.strncpy(&qry.ProductID[0], C.CString(qryInstrument.ProductID), C.sizeof_TQFMatchProductIDType-1)
+	C.strncpy(&qry.InstrumentID[0], C.CString(qryInstrument.InstrumentID), C.sizeof_TQFMatchInstrumentIDType)
 
-	return &req
+	return &qry
+}
+
+func transformGoCQFMatchQryInstrumentStatusField(qryInsStatus *GoCQFMatchQryInstrumentStatusField) *C.struct_CQFMatchQryInstrumentStatusField {
+	qry := C.struct_CQFMatchQryInstrumentStatusField{}
+
+	C.strncpy(&qry.InstIDStart[0], C.CString(qryInsStatus.InstIDStart), C.sizeof_TQFMatchInstrumentIDType-1)
+	C.strncpy(&qry.InstIDEnd[0], C.CString(qryInsStatus.InstIDEnd), C.sizeof_TQFMatchInstrumentIDType-1)
+
+	return &qry
 }
 
 //export goOnRspSubscribeTopic
@@ -378,12 +396,24 @@ func (api *marketAPI) SubscribeMarketDataTopic(topicID int, resumeType ResumeTyp
 	C.SubscribeMarketDataTopic(C.QFMatchSuperApiInstance(api.common.apiInstance), C.int(topicID), C.enum_QFMATCH_TE_RESUME_TYPE(resumeType))
 }
 
+func (api *marketAPI) ReqSubscribeTopic(dissemination *GoCQFMatchDisseminationField) int {
+	rtn := C.ReqSubscribeTopic(C.QFMatchSuperApiInstance(api.common.apiInstance), transformGoCQFMatchDisseminationField(dissemination), C.int(api.common.getRequestID()))
+
+	return int(rtn)
+}
+
 // ReqQryInstrument 合约查询请求
 func (api *marketAPI) ReqQryInstrument(qryInstrument *GoCQFMatchQryInstrumentField) int {
 	rtn := C.ReqQryInstrument(
 		C.QFMatchSuperApiInstance(api.common.apiInstance),
 		transformGoCQFMatchQryInstrumentField(qryInstrument),
 		C.int(api.common.getRequestID()))
+
+	return int(rtn)
+}
+
+func (api *marketAPI) ReqQryInstrumentStatus(qryInsStatus *GoCQFMatchQryInstrumentStatusField) int {
+	rtn := C.ReqQryInstrumentStatus(C.QFMatchSuperApiInstance(api.common.apiInstance), transformGoCQFMatchQryInstrumentStatusField(qryInsStatus), C.int(api.common.getRequestID()))
 
 	return int(rtn)
 }
@@ -423,7 +453,7 @@ func (api *marketAPI) OnRspQryInstrument(instrument *GoCQFMatchRspInstrumentFiel
 		}
 
 		if isLast {
-			log.Printf("Instruments query finished.")
+			log.Println("Instruments query finished.")
 		}
 	}
 }
@@ -438,6 +468,10 @@ func (api *marketAPI) OnRspQryInstrumentStatus(insStatus *GoCQFMatchInstrumentSt
 		log.Printf("Instrument status query failed: [%d]%s\n", err.ErrorID, err.ErrorMsg)
 	} else {
 		showInstrumentStatus(insStatus)
+
+		if isLast {
+			log.Println("Instrument status query finished.")
+		}
 	}
 }
 

@@ -290,3 +290,9 @@ type GoCQFMatchQryInstrumentField struct {
 	ProductID         string
 	InstrumentID      string
 }
+
+// GoCQFMatchQryInstrumentStatusField 合约状态查询
+type GoCQFMatchQryInstrumentStatusField struct {
+	InstIDStart string
+	InstIDEnd   string
+}
